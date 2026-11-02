@@ -3,6 +3,23 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "routes/**"
+      - "server/**"
+      - "shared/**"
+      - "index.html"
+      - "env.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.json"
+      - "vite.config.ts"
+      - "void.config.ts"
+      - "scripts/compact-shaders.ts"
+      - ".github/workflows/ci.yml"
+      - "!**/*.test.*"
   pull_request:
   workflow_dispatch:
 
@@ -45,3 +62,35 @@ jobs:
 
       - name: Check bundle boundaries
         run: pnpm size
+
+  deploy:
+    name: Deploy website
+    needs: checks
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Void
+        run: pnpm exec void deploy --platform void --project colors
+        env:
+          VOID_API_URL: https://api.void.cloud

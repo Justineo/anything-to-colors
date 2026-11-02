@@ -39,7 +39,7 @@ pnpm build   # Client and server bundles
 pnpm size    # Initial bundle and lazy-loading checks
 ```
 
-The test suite uses simulated model responses and does not make paid model calls. GitHub Actions runs the same checks for pushes to `main` and pull requests.
+The test suite uses simulated model responses and does not make paid model calls. GitHub Actions runs the same checks for every pull request, relevant production changes pushed to `main`, and manual workflow runs.
 
 ## Project structure
 
@@ -56,6 +56,18 @@ The test suite uses simulated model responses and does not make paid model calls
 Vue Vapor handles the interface; Vite+ builds the app, and Void serves its API routes. Palette generation uses OpenAI's Responses API with a strict JSON schema. The browser receives colors and transcripts, never provider credentials. Session cookies, Turnstile verification, and shared request quotas protect production access. Failed model requests are not retried automatically.
 
 ## Deployment
+
+The CI workflow deploys the website to the Void project `colors` after all checks pass. GitHub OIDC supplies a short-lived deployment credential; no `VOID_TOKEN` repository secret is required. The Void connection authorizes only `Justineo/anything-to-colors`, branch `main`, and `.github/workflows/ci.yml`.
+
+| Event                                                                                                      | Behavior                              |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Pull request                                                                                               | Run checks without deploying          |
+| Push to `main` changing website code, public assets, dependencies, build configuration, or the CI workflow | Run checks, then deploy the website   |
+| Push to `main` changing only documentation, tests, formatting or Renovate settings, or experiment tools    | Skip the workflow and deployment      |
+| Manual CI run on `main`                                                                                    | Run checks, then redeploy the website |
+| Manual CI run on another branch                                                                            | Run checks without deploying          |
+
+The production paths are listed in `.github/workflows/ci.yml`. Documentation-only pushes do not start a run, so they cannot cancel an in-progress production deployment. Manual runs provide an explicit way to redeploy without a source change.
 
 The website and backend Worker are deployed separately. Review `backend/wrangler.json` and `scripts/cloudflare-api.mjs` before deploying to another Cloudflare account.
 
