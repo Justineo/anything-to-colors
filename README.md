@@ -69,7 +69,7 @@ The CI workflow deploys the website to the Void project `colors` after all check
 
 The production paths are listed in `.github/workflows/ci.yml`. Documentation-only pushes do not start a run, so they cannot cancel an in-progress production deployment. Manual runs provide an explicit way to redeploy without a source change.
 
-The website and backend Worker are deployed separately. Review `backend/wrangler.json` and `scripts/cloudflare-api.mjs` before deploying to another Cloudflare account.
+The independent backend Worker is deployed manually and is not part of the website workflow. Review `backend/wrangler.json` and `scripts/cloudflare-api.mjs` before deploying to another Cloudflare account.
 
 Copy `backend/env.example` to `backend/.env` and set `COLOR_RELAY_TOKEN` to a random secret. Keep `OPENAI_API_KEY` in the root `.env` for the backend deployment command:
 
