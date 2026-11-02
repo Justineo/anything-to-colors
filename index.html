@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Anything to colors — To every dream, its colors</title>
+    <meta
+      name="description"
+      content="Turn words, moods, and memories into color palettes with AI. Explore flowing colors and copy HEX codes for your next design."
+    />
+    <meta name="application-name" content="Anything to colors" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://colors.void.app/" />
+
+    <!-- Keep a complete English preview in HTML for crawlers that do not run JavaScript. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Anything to colors" />
+    <meta property="og:url" content="https://colors.void.app/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Anything to colors — To every dream, its colors" />
+    <meta
+      property="og:description"
+      content="Turn words, moods, and memories into color palettes with AI. Explore flowing colors and copy HEX codes for your next design."
+    />
+    <meta property="og:image" content="https://colors.void.app/social-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Anything to colors — Everything you imagine has its colors, over flowing deep blue, mint, and apricot pigments."
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Anything to colors — To every dream, its colors" />
+    <meta
+      name="twitter:description"
+      content="Turn words, moods, and memories into color palettes with AI. Explore flowing colors and copy HEX codes for your next design."
+    />
+    <meta name="twitter:image" content="https://colors.void.app/social-card.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Anything to colors — Everything you imagine has its colors, over flowing deep blue, mint, and apricot pigments."
+    />
+    <meta name="theme-color" content="#000000" />
+    <!-- Geist Serif for Latin letters and figures; Chinese, and the quotes, dashes and ellipsis
+         Chinese text uses, fall through to Noto Serif. One weight (its variable axis shapes
+         the dots, not the weight); fetched only when such characters are on screen. -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #000;
+      }
+      @font-face {
+        font-family: "Geist Serif";
+        src: url("/src/assets/geist-serif.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+        unicode-range:
+          U+0021-00B6, U+00B8-024F, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-200A, U+200C-2013,
+          U+2015-2017, U+2020-2025, U+2027-206F, U+2074, U+20AC, U+2122, U+2212, U+2215;
+      }
+      @font-face {
+        font-family: "Geist UI";
+        src: url("/src/assets/geist-ui.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+        unicode-range: U+0020, U+0023, U+0030-0039, U+0041-0046, U+0048, U+0067, U+200B;
+      }
+      /* Strut metrics and the editor's invisible anchor must not fetch the full Latin font. */
+      @font-face {
+        font-family: "Geist Serif";
+        src: url("/src/assets/geist-ui.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+        unicode-range: U+0020, U+200B;
+      }
+      /* Western UI copy also uses Geist for quotation marks and combining accents. */
+      @font-face {
+        font-family: "Geist Serif Latin";
+        src: url("/src/assets/geist-serif.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+        unicode-range:
+          U+0020-024F, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0300-036F, U+1E00-1EFF, U+2000-206F,
+          U+2074, U+20AC, U+2122, U+2212, U+2215;
+      }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

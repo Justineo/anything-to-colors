@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ESNext", "DOM"],
+    "types": ["vite-plus/client", "node"]
+  },
+  "include": ["**/*.ts", "**/*.vue", ".void/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "backend"]
+}

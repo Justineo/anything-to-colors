@@ -1,0 +1,7 @@
+overrides:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+  better-sqlite3: false

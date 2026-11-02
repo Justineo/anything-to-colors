@@ -1,0 +1,9 @@
+{
+  "name": "anything-to-color-luna",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test *.test.mjs",
+    "deploy": "CLOUDFLARE_AUTH_USE_KEYRING=true NODE_USE_ENV_PROXY=1 node --env-file=.env --env-file=../.env ../scripts/deploy-backend.mjs"
+  }
+}

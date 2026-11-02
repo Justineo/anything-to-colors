@@ -1,0 +1,18 @@
+{
+  "name": "anything-to-color-luna",
+  "account_id": "712272db055c8792a75c0e227ba21762",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-26",
+  "workers_dev": true,
+  "vars": { "DAILY_REQUEST_LIMIT": "10000" },
+  "durable_objects": {
+    "bindings": [
+      { "name": "COLOR_JOBS", "class_name": "ColorJob" },
+      { "name": "RATE_LIMITS", "class_name": "RateLimiter" }
+    ]
+  },
+  "migrations": [
+    { "tag": "color-jobs-v1", "new_sqlite_classes": ["ColorJob"] },
+    { "tag": "rate-limits-v1", "new_sqlite_classes": ["RateLimiter"] }
+  ]
+}
