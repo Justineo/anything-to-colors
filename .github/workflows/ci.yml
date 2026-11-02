@@ -90,6 +90,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Connect to Void
+        run: pnpm exec void connect https://api.void.cloud --no-login
+
       - name: Deploy to Void
         run: pnpm exec void deploy --platform void --project colors
         env:
