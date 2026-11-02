@@ -57,7 +57,7 @@ Vue Vapor handles the interface; Vite+ builds the app, and Void serves its API r
 
 ## Deployment
 
-The CI workflow deploys the website to the Void project `colors` after all checks pass, using a project-scoped deploy credential stored in the `VOID_TOKEN` GitHub Actions secret. GitHub Actions controls deployment triggers; a separate Void GitHub auto-deploy connection is not required. The credential expires after 90 days. Renew it with `void project token renew` and update the repository secret before expiry.
+The CI workflow deploys the website to the Void project `colors` after all checks pass, using a project-scoped deploy credential stored in the `VOID_TOKEN` GitHub Actions secret. GitHub Actions controls all automatic deployment triggers. The credential expires after 90 days. Renew it with `void project token renew` and update the repository secret before expiry.
 
 | Event                                                                                                      | Behavior                              |
 | ---------------------------------------------------------------------------------------------------------- | ------------------------------------- |
