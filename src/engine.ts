@@ -107,6 +107,10 @@ function paintPalette({ colors, weights }: Palette) {
   return { labs, edges: paletteEdges(colors.length, weights) };
 }
 
+function paletteKey({ colors, weights }: Palette) {
+  return colors.join() + "/" + (weights?.join() ?? "");
+}
+
 /**
  * Orchestrates the living canvas: a fluid of pigment that always relaxes toward
  * the current palette, the words' particles, and the transitions between them.
@@ -217,7 +221,7 @@ export class Atelier {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    colors: string[],
+    initial: Palette,
     private unavailable: () => void,
     material: Material = "silk",
     /** Keeps this liquid whatever the examples ask for (for trying one out). */
@@ -298,8 +302,8 @@ export class Atelier {
     const small = Math.min(innerWidth, innerHeight) < 600;
     this.swarm = new Swarm(small ? 3200 : 7000);
     this.swarm.style = this.style.particle;
-    const palette = paintPalette({ colors });
-    this.key = colors.join() + "/";
+    const palette = paintPalette(initial);
+    this.key = paletteKey(initial);
     this.field = {
       paletteA: palette,
       paletteB: palette,
@@ -357,7 +361,7 @@ export class Atelier {
   }
 
   private setPalette(palette: Palette) {
-    const key = palette.colors.join() + "/" + (palette.weights?.join() ?? "");
+    const key = paletteKey(palette);
     const changed = key !== this.key;
     const paint = changed ? paintPalette(palette) : this.field.paletteB;
     this.swarm.steep(paint);

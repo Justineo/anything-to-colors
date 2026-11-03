@@ -19,7 +19,7 @@ import { readPalette } from "../shared/palette";
 const examples = createExamples(presets.length);
 const example = (index: number): Entry => ({
   text: presetCaptions[index],
-  colors: presets[index],
+  ...presets[index],
   material: textureOf(index),
 });
 const current = ref<Entry>(example(examples.current));
@@ -681,7 +681,7 @@ onMounted(() => {
     // Each example shows in its own liquid; ?material=<name> keeps one throughout.
     const asked = new URLSearchParams(location.search).get("material");
     const material = asked ? parseMaterial(asked) : (current.value.material ?? "silk");
-    atelier = new Atelier(canvas.value!, current.value.colors, degrade, material, !!asked);
+    atelier = new Atelier(canvas.value!, current.value, degrade, material, !!asked);
     if (debug) {
       const locked = asked ? " (locked)" : "";
       liquid.value = material + locked;

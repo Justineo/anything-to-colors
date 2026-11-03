@@ -108,7 +108,7 @@ const random = Math.random;
 let atelier: Atelier;
 try {
   Math.random = () => 0.42;
-  atelier = new Atelier(canvas, colors, () => {
+  atelier = new Atelier(canvas, { colors }, () => {
     throw new Error("WebGL2 is required to render the social card");
   });
 } finally {
