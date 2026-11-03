@@ -1,4 +1,4 @@
-import { STRIDE, type Flow } from "./fluid";
+import { STRIDE, type Flow, type PaintPalette } from "./fluid";
 import type { Lab } from "./color";
 import { MATERIALS, type ParticleStyle } from "./materials";
 
@@ -140,23 +140,28 @@ export class Swarm {
    * where it floats (same palette curve as the shader, along the same axis), so its dye
    * already matches the background it is about to become.
    */
-  steep(labs: Lab[]) {
+  steep({ labs, edges }: PaintPalette) {
     if (this.mode === "idle") return;
     this.settled = this.clock;
     const aspect = this.width / this.height;
     const extent = 0.5 * (aspect * 0.894 + 0.447);
-    const n = labs.length;
     this.finish = 0;
     for (let i = 0; i < this.count; i++) {
       const along =
         ((this.x[i] - this.width / 2) * 0.894 - (this.y[i] - this.height / 2) * 0.447) /
         this.height;
-      const position =
-        Math.min(1, Math.max(0, along / (2 * extent) + 0.5 + (this.s3[i] - 0.5) * 0.08)) * (n - 1);
-      const index = Math.floor(position),
-        next = Math.min(index + 1, n - 1);
-      const blend = smooth((position - index - 0.08) / 0.84);
-      const lab: Lab = [0, 1, 2].map((c) => mix(labs[index][c], labs[next][c], blend)) as Lab;
+      const position = Math.min(
+        1,
+        Math.max(0, along / (2 * extent) + 0.5 + (this.s3[i] - 0.5) * 0.08),
+      );
+      let index = 0;
+      while (index < 8 && position >= edges[index * 2 + 1]) index++;
+      const start = edges[index * 2];
+      const end = edges[index * 2 + 1];
+      const blend = position > start ? smooth((position - start) / (end - start)) : 0;
+      const offset = index * 3;
+      const lab: Lab = [labs[offset], labs[offset + 1], labs[offset + 2]];
+      if (blend) for (let c = 0; c < 3; c++) lab[c] = mix(lab[c], labs[offset + 3 + c], blend);
       this.lab.set(lab, i * 3);
       // Melting starts once the particle has its color, spread over a second: enough that the
       // color sinks in gradually, short enough that few dots linger over paint already laid.

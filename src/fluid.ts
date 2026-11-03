@@ -27,11 +27,11 @@ import {
 } from "./shaders";
 import type { MaterialStyle } from "./materials";
 
+export type PaintPalette = { labs: Float32Array; edges: Float32Array };
+
 export type FieldState = {
-  paletteA: Float32Array;
-  paletteB: Float32Array;
-  countA: number;
-  countB: number;
+  paletteA: PaintPalette;
+  paletteB: PaintPalette;
   mix: number;
   time: number;
   aspect: number;
@@ -198,10 +198,10 @@ export class Fluid {
   /** Sets the palettes and the resting field's uniforms on any program that uses them. */
   field(u: Program["u"], field: FieldState) {
     const gl = this.gl;
-    gl.uniform3fv(u.uPaletteA, field.paletteA);
-    gl.uniform3fv(u.uPaletteB, field.paletteB);
-    gl.uniform1f(u.uCountA, field.countA);
-    gl.uniform1f(u.uCountB, field.countB);
+    gl.uniform3fv(u.uPaletteA, field.paletteA.labs);
+    gl.uniform3fv(u.uPaletteB, field.paletteB.labs);
+    gl.uniform2fv(u.uEdgesA, field.paletteA.edges);
+    gl.uniform2fv(u.uEdgesB, field.paletteB.edges);
     gl.uniform1f(u.uMix, field.mix);
     gl.uniform1f(u.uTime, field.time);
     gl.uniform1f(u.uAspect, field.aspect);

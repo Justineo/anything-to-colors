@@ -29,7 +29,7 @@ const env = {
 };
 const payload = JSON.stringify({
   input: "blue",
-  model: "gpt-6-luna",
+  model: "gpt-6.1-terra",
   reasoning: { effort: "none" },
 });
 function createJob() {
@@ -180,11 +180,11 @@ test("HTTP handler passes only payload to a separate job and preserves upstream 
   assert.equal(response.status, 429);
   assert.match(
     response.headers.get("Server-Timing"),
-    /^luna;dur=12, admission;dur=\d+, relay;dur=\d+$/,
+    /^inference;dur=12, admission;dur=\d+, relay;dur=\d+$/,
   );
 });
 
-test("only alarm calls Luna; replay does not charge twice or erase an unread result", async () => {
+test("only alarm calls the model; replay does not charge twice or erase an unread result", async () => {
   const { job, storage, entries } = createJob();
   const fetch = mock.method(globalThis, "fetch", async (url, init) => {
     assert.equal(url, "https://api.openai.com/v1/responses");
@@ -219,10 +219,10 @@ test("failed inference returns a bounded error without retrying the paid request
   assert.equal((await job.take()).status, 504);
 });
 
-test("expired or interrupted jobs are reclaimed without invoking Luna", async () => {
+test("expired or interrupted jobs are reclaimed without invoking the model", async () => {
   const { job, storage, entries } = createJob();
   const fetch = mock.method(globalThis, "fetch", () => {
-    throw new Error("Must not call Luna");
+    throw new Error("Must not call the model");
   });
   await storage.put("job", { body: payload, expiresAt: Date.now() - 1 });
   await job.alarm();

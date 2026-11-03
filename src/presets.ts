@@ -1,6 +1,7 @@
 import type { Material } from "./materials";
+import type { Palette } from "../shared/palette";
 
-export type Entry = { text: string; colors: string[]; material?: Material };
+export type Entry = Palette & { text: string; material?: Material };
 
 // Caption arrays in locales/*.json use this same order; keep every locale in sync when adding.
 // Palettes are shared by all languages, so only the selected language carries any words.

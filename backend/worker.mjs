@@ -239,7 +239,7 @@ export default {
           headers: {
             "Content-Type": "application/json",
             "Cache-Control": "no-store",
-            "Server-Timing": `${audio ? "transcription" : "luna"};dur=${result.ms}, admission;dur=${Math.round(admitted - began)}, relay;dur=${Math.round(performance.now() - began)}`,
+            "Server-Timing": `${audio ? "transcription" : "inference"};dur=${result.ms}, admission;dur=${Math.round(admitted - began)}, relay;dur=${Math.round(performance.now() - began)}`,
           },
         });
       return new Response(JSON.stringify({ error: "Color job timed out" }), {

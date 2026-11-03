@@ -53,5 +53,5 @@ await api(path + "/subdomain", {
   body: JSON.stringify({ enabled: true, previews_enabled: false }),
 });
 console.log(
-  "Deployed Luna background relay: https://anything-to-color-luna.justice360.workers.dev/api/color",
+  "Deployed color relay: https://anything-to-color-luna.justice360.workers.dev/api/color",
 );

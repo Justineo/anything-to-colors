@@ -27,7 +27,9 @@ try {
     await response.text();
     if (!response.ok) throw new Error(`Relay failed: ${response.status}`);
     const total = performance.now() - began;
-    const upstream = Number(/luna;dur=(\d+)/.exec(response.headers.get("Server-Timing"))[1]);
+    const upstream = Number(
+      /(?:inference|luna);dur=(\d+)/.exec(response.headers.get("Server-Timing"))[1],
+    );
     samples.push({
       upstreamMs: upstream,
       totalMs: Math.round(total),

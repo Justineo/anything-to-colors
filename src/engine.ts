@@ -1,4 +1,5 @@
-import { hexToOklab, hexToRgb } from "./color";
+import { hexToOklab, hexToRgb, paletteEdges } from "./color";
+import type { Palette } from "../shared/palette";
 import { Fluid, STRIDE, pointArray, type FieldState, type Flow, type Label } from "./fluid";
 import { createProgram, type Program } from "./gl";
 import {
@@ -100,10 +101,10 @@ function premultiply(data: Uint8ClampedArray) {
   }
 }
 
-function flatten(colors: string[]) {
-  const data = new Float32Array(27);
-  for (let i = 0; i < 9; i++) data.set(hexToOklab(colors[Math.min(i, colors.length - 1)]), i * 3);
-  return data;
+function paintPalette({ colors, weights }: Palette) {
+  const labs = new Float32Array(27);
+  colors.forEach((color, i) => labs.set(hexToOklab(color), i * 3));
+  return { labs, edges: paletteEdges(colors.length, weights) };
 }
 
 /**
@@ -297,13 +298,11 @@ export class Atelier {
     const small = Math.min(innerWidth, innerHeight) < 600;
     this.swarm = new Swarm(small ? 3200 : 7000);
     this.swarm.style = this.style.particle;
-    const palette = flatten(colors);
-    this.key = colors.join();
+    const palette = paintPalette({ colors });
+    this.key = colors.join() + "/";
     this.field = {
       paletteA: palette,
       paletteB: palette,
-      countA: colors.length,
-      countB: colors.length,
       mix: 0,
       time: Math.random() * 100,
       aspect: 1,
@@ -357,13 +356,15 @@ export class Atelier {
     this.wake();
   }
 
-  private setPalette(colors: string[]) {
-    const key = colors.join();
-    if (key === this.key) return;
+  private setPalette(palette: Palette) {
+    const key = palette.colors.join() + "/" + (palette.weights?.join() ?? "");
+    const changed = key !== this.key;
+    const paint = changed ? paintPalette(palette) : this.field.paletteB;
+    this.swarm.steep(paint);
+    if (!changed) return;
     this.key = key;
     if (this.transition) this.settle();
-    this.field.paletteB = flatten(colors);
-    this.field.countB = colors.length;
+    this.field.paletteB = paint;
     this.field.mix = 0;
     if (this.reduced.matches) {
       this.settle();
@@ -381,7 +382,6 @@ export class Atelier {
 
   private settle() {
     this.field.paletteA = this.field.paletteB;
-    this.field.countA = this.field.countB;
     this.field.mix = 0;
     this.field.spread = false;
     this.transition = undefined;
@@ -697,13 +697,12 @@ export class Atelier {
    * rather than leading it: it starts late, moves slowly, and the fluid holds on to the
    * melted pigment longer while it is carried around. Resolves once the melting is under way.
    */
-  reveal(colors: string[], material?: Material) {
-    this.swarm.steep(colors.map(hexToOklab));
+  reveal(palette: Palette, material?: Material) {
     this.swirlTarget = 0;
     // The words are gone by now: let the hollow behind them fill in with the new color.
     this.scrimTarget = 0;
     this.burstAt = performance.now();
-    this.setPalette(colors);
+    this.setPalette(palette);
     if (material && !this.locked) this.becomes(material);
     return new Promise<void>((resolve) => setTimeout(resolve, this.reduced.matches ? 0 : 1700));
   }

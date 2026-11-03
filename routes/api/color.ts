@@ -1,6 +1,6 @@
 import { defineHandler } from "void";
 import { env } from "void/env";
-import { colorRequest, readColors } from "../../server/luna";
+import { colorRequest, readColorResponse } from "../../server/palette";
 import { clientAccess, admissionResponse } from "../../server/access";
 import { requestTiming } from "../../server/timing";
 import { maxTextLength } from "../../shared/limits.ts";
@@ -33,9 +33,9 @@ export const POST = defineHandler(async (c) => {
       console.error("Color request failed:", response.status);
       return c.json({ error: "The palette service is unavailable. Please try again later." }, 502);
     }
-    const colors = readColors(await response.json());
-    if (!colors) return c.json({ error: "No palette was found. Please try again." }, 502);
-    return c.json({ colors });
+    const palette = readColorResponse(await response.json());
+    if (!palette) return c.json({ error: "No palette was found. Please try again." }, 502);
+    return c.json(palette);
   } catch {
     return c.json({ error: "The palette request timed out. Please try again." }, 504);
   }

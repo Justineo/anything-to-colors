@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { Atelier, cancelDuration, type Caret, type Glyph } from "./engine";
 import { foreground } from "./contrast";
-import { meanColor } from "./color";
+import { meanColor, paletteEdges } from "./color";
 import { fit, graphemes, leading, weight } from "./typography";
 import { onFontsReady, serif, warmFonts } from "./fonts";
 import { trackViewport } from "./viewport";
@@ -14,8 +14,7 @@ import { MATERIALS, parseMaterial, type Material } from "./materials";
 import { createApi } from "./api";
 import { messagesForLocale as copyText, presetCaptions } from "./locale";
 import { maxTextLength } from "../shared/limits.ts";
-
-const hex = /^#[0-9A-F]{6}$/;
+import { readPalette } from "../shared/palette";
 
 const examples = createExamples(presets.length);
 const example = (index: number): Entry => ({
@@ -92,10 +91,22 @@ const voiceStatus = computed(() =>
 );
 
 const chars = computed(() => graphemes(input.value));
-const ink = computed(() => foreground(meanColor(current.value.colors)));
+const average = computed(() => meanColor(current.value.colors, current.value.weights));
+const ink = computed(() => foreground(average.value));
+const stops = computed(() => {
+  const { colors, weights } = current.value;
+  if (!weights || colors.length === 1)
+    return colors.map((color, i) => ({ color, at: i / Math.max(1, colors.length - 1) }));
+  const edges = paletteEdges(colors.length, weights);
+  return colors.flatMap((color, i) => [
+    { color, at: i === 0 ? 0 : edges[2 * i - 1] },
+    { color, at: i === colors.length - 1 ? 1 : edges[2 * i] },
+  ]);
+});
 const paint = computed(() => {
-  const colors = current.value.colors;
-  return `linear-gradient(125deg, ${(colors.length > 1 ? colors : [colors[0], colors[0]]).join(", ")})`;
+  const gradient = stops.value.map(({ color, at }) => `${color} ${at * 100}%`);
+  if (gradient.length === 1) gradient.push(stops.value[0].color);
+  return `linear-gradient(125deg, ${gradient.join(", ")})`;
 });
 
 let atelier: Atelier | undefined;
@@ -469,17 +480,14 @@ function keys(event: KeyboardEvent) {
 
 // The tab icon and browser chrome wear the current palette: the icon runs first color
 // lower left to last upper right, like the painting; the chrome takes its average.
-function brand(colors: string[]) {
-  const stops = colors
-    .map(
-      (color, i) =>
-        `<stop offset="${colors.length > 1 ? i / (colors.length - 1) : 0}" stop-color="${color}"/>`,
-    )
+function brand() {
+  const gradient = stops.value
+    .map(({ color, at }) => `<stop offset="${at}" stop-color="${color}"/>`)
     .join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">${stops}</linearGradient></defs><circle cx="16" cy="16" r="15" fill="url(#g)"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">${gradient}</linearGradient></defs><circle cx="16" cy="16" r="15" fill="url(#g)"/></svg>`;
   document.querySelector<HTMLLinkElement>('link[rel="icon"]')!.href =
     `data:image/svg+xml,${encodeURIComponent(svg)}`;
-  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')!.content = meanColor(colors);
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')!.content = average.value;
 }
 
 function readGlyph(element: HTMLElement): Glyph | undefined {
@@ -537,7 +545,7 @@ async function changeExample(direction: -1 | 1 = 1, chosen?: number) {
     if (animated) await wait(Math.max(0, 3000 - (performance.now() - began)));
     if (!alive) return;
     phase.value = "reveal";
-    await atelier?.reveal(next.colors, next.material);
+    await atelier?.reveal(next, next.material);
     if (!alive) return;
     current.value = next;
     shown.value++;
@@ -577,27 +585,22 @@ async function submit(pending?: ReturnType<typeof requestColor>) {
     ]);
     if ("error" in result) throw result.error;
     const response = result.response;
-    const body = (await response.json().catch(() => ({}))) as {
+    const body = (await response.json().catch(() => null)) as {
       colors?: unknown;
+      weights?: unknown;
       error?: string;
-    };
-    const colors = body.colors;
-    if (
-      !response.ok ||
-      !Array.isArray(colors) ||
-      colors.length < 1 ||
-      colors.length > 9 ||
-      !colors.every((color) => typeof color === "string" && hex.test(color))
-    )
-      throw new Error(body.error || "No palette was generated. Press Enter to try again.");
+    } | null;
+    const palette = readPalette(body?.colors, body?.weights);
+    if (!response.ok || !palette)
+      throw new Error(body?.error || "No palette was generated. Press Enter to try again.");
     if (!alive) return;
     // The particles always get their moment, even when the answer is instant.
     if (animated) await wait(Math.max(0, 3000 - (performance.now() - began)));
     if (!alive) return;
     phase.value = "reveal";
-    await atelier?.reveal(colors);
+    await atelier?.reveal(palette);
     if (!alive) return;
-    current.value = { text, colors };
+    current.value = { text, ...palette };
     shown.value++;
     input.value = "";
     handoff.value = false;
@@ -655,7 +658,7 @@ watch(voiceState, (state) => {
 watch(chars, () => layoutWriting(), { flush: "post" });
 watch(focused, () => drawWriting());
 watch(ink, () => atelier?.setInk(ink.value));
-watch(() => current.value.colors, brand, { immediate: true });
+watch(stops, brand, { immediate: true });
 
 onMounted(() => {
   stopViewport = trackViewport();
@@ -861,7 +864,12 @@ onUnmounted(() => {
             type="button"
             class="swatch"
             :class="{ copied: copied === color }"
-            :style="{ '--c': color, '--fg': foreground(color), '--i': i }"
+            :style="{
+              '--c': color,
+              '--fg': foreground(color),
+              '--i': i,
+              '--swatch-width': entry.weights && `${entry.weights[i] * entry.colors.length * 30}px`,
+            }"
             :aria-label="copyText.copy(color)"
             @click="copy(color)"
           >
@@ -1228,7 +1236,7 @@ main[data-phase="reveal"] .strip {
   flex: 1 1 0;
   /* Never narrower than at rest: while the capsule grows or draws in, it uncovers the colors
      rather than squeezing them. */
-  min-width: 30px;
+  min-width: var(--swatch-width, 30px);
   margin: 0;
   padding: 0;
   border: 0;
@@ -1246,6 +1254,9 @@ main[data-phase="reveal"] .strip {
 .swatch:focus-visible,
 .swatch.copied {
   flex-grow: 4;
+}
+.strip:is(:hover, :focus-within, .active) .swatch {
+  min-width: 30px;
 }
 .swatch:focus-visible {
   outline: none;

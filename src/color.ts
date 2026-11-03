@@ -1,5 +1,17 @@
 export type Lab = [number, number, number];
 
+/** The start and end of each blend, with room for even a narrow accent to reach its full color. */
+export function paletteEdges(count: number, weights?: number[]) {
+  const edges = new Float32Array(16).fill(2);
+  let boundary = 0;
+  for (let i = 0; i < count - 1; i++) {
+    boundary = weights ? boundary + weights[i] : (i + 0.5) / (count - 1);
+    const half = 0.42 * (weights ? Math.min(weights[i], weights[i + 1]) : 1 / (count - 1));
+    edges.set([boundary - half, boundary + half], i * 2);
+  }
+  return edges;
+}
+
 const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 const toGamma = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
 
@@ -20,10 +32,12 @@ export function hexToOklab(hex: string): Lab {
 }
 
 // Averages light, not hex digits, so the result is what the eye integrates.
-export function meanColor(colors: string[]) {
+export function meanColor(colors: string[], weights?: number[]) {
   const sum = [0, 0, 0];
-  for (const color of colors)
-    hexToRgb(color).forEach((channel, i) => (sum[i] += toLinear(channel) / colors.length));
+  colors.forEach((color, index) => {
+    const share = weights?.[index] ?? 1 / colors.length;
+    hexToRgb(color).forEach((channel, i) => (sum[i] += toLinear(channel) * share));
+  });
   return (
     "#" +
     sum

@@ -46,14 +46,18 @@ vec3 oklabToSrgb(vec3 c) {
 // warped diagonal, so the model's explicit color order always reads first → last.
 const palette = `
 uniform vec3 uPaletteA[9], uPaletteB[9];
-uniform float uCountA, uCountB;
+uniform vec2 uEdgesA[8], uEdgesB[8];
 vec3 tone(bool next, float x) {
-  float count = next ? uCountB : uCountA;
-  float position = clamp(x, 0., 1.) * (count - 1.);
-  float index = floor(position);
-  int a = int(index), b = int(min(index + 1., count - 1.));
-  float blend = smoothstep(.08, .92, position - index);
-  return mix(next ? uPaletteB[a] : uPaletteA[a], next ? uPaletteB[b] : uPaletteA[b], blend);
+  x = clamp(x, 0., 1.);
+  for (int i = 0; i < 8; i++) {
+    vec2 edge = next ? uEdgesB[i] : uEdgesA[i];
+    if (x <= edge.x) return next ? uPaletteB[i] : uPaletteA[i];
+    if (x < edge.y) {
+      return mix(next ? uPaletteB[i] : uPaletteA[i], next ? uPaletteB[i + 1] : uPaletteA[i + 1],
+        smoothstep(edge.x, edge.y, x));
+    }
+  }
+  return next ? uPaletteB[8] : uPaletteA[8];
 }
 `;
 const field = `

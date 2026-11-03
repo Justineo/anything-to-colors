@@ -10,7 +10,7 @@ Type anywhere or press and hold the background to speak. Your words dissolve int
 
 ## Features
 
-- Expressive palettes of 1–9 colors, with requested order and repetitions preserved.
+- Expressive palettes of 1–9 colors, with visual weights and support for requested proportions, order, and repetitions.
 - WebGL2 fluid rendering, with several material styles and smooth palette transitions.
 - 136 built-in examples. Click the corner caption or use the arrow keys to explore them.
 - Voice input with hold-to-record and drag-to-cancel gestures.
